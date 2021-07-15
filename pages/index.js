@@ -29,6 +29,7 @@ function ProfileSidebar(propriedades) {
 export default function Home() {
 
     const githubUser = "odaniloborges"
+
     const [comunidades, setComunidades] = React.useState([{
       id: '5835137794315195619',
       title: 'Eu odeio acordar cedo',
@@ -39,6 +40,27 @@ export default function Home() {
       'omariosouto',
       'peas',
     ]
+
+    // Pegar o array de dados do github
+    const [seguidores, setSeguidores] = React.useState([]);
+
+    React.useEffect(function(){
+      fetch(`https://api.github.com/users/${githubUser}/followers`)
+        .then(function (respostaDoServidor) {
+          return respostaDoServidor.json();
+        })
+        .then(function (respostaCompleta) {
+          setSeguidores(respostaCompleta);
+        })
+      
+    }, [])  
+    console.log(seguidores);
+    
+
+  function handleCriaSeguidores(e) {
+    e.preventDefault();
+    setSeguidores();
+  }
 
   return (
     <>
@@ -111,6 +133,25 @@ export default function Home() {
                     <a href={`/users/${itemAtual}`}>
                       <img src={`https://github.com/${itemAtual}.png`} />
                       <span>{itemAtual}</span>
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          </ProfileRelationsBoxWrapper>
+
+          <ProfileRelationsBoxWrapper>
+            <h2 className="smallTitle">
+              Seguidores ({seguidores.length})
+            </h2>
+
+            <ul>
+              {seguidores.map((itemAtual) => {
+                return (
+                  <li key={itemAtual.id}>
+                    <a href={`/users/${itemAtual.login}`}>
+                      <img src={`https://github.com/${itemAtual.login}.png`} />
+                      <span>{itemAtual.login}</span>
                     </a>
                   </li>
                 )
