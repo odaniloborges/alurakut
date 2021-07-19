@@ -31,10 +31,10 @@ export default function Home() {
     const githubUser = "odaniloborges"
 
     const [comunidades, setComunidades] = React.useState([{
-      id: '5835137794315195619',
-      title: 'Eu odeio acordar cedo',
-      image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg' ,
-    }]);;
+      //id: '5835137794315195619',
+      //title: 'Eu odeio acordar cedo',
+      //image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg' ,
+    }]);
     const pessoasFavoritas = [
       'juunegreiros',
       'omariosouto',
@@ -44,17 +44,45 @@ export default function Home() {
     // Pegar o array de dados do github
     const [seguidores, setSeguidores] = React.useState([]);
 
-    React.useEffect(function(){
-      fetch(`https://api.github.com/users/${githubUser}/followers`)
-        .then(function (respostaDoServidor) {
-          return respostaDoServidor.json();
-        })
-        .then(function (respostaCompleta) {
-          setSeguidores(respostaCompleta);
-        })
-      
-    }, [])  
-    console.log(seguidores);
+  React.useEffect(function () {
+    // GET
+    fetch('https://api.github.com/users/odaniloborges/followers')
+      .then(function (respostaDoServidor) {
+        return respostaDoServidor.json();
+      })
+      .then(function (respostaCompleta) {
+        setSeguidores(respostaCompleta);
+      })
+
+
+    // API GraphQL
+    fetch('https://graphql.datocms.com/', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'ceb1fef29dcf6133fa1ab95d8755ad',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({"query": `query {
+        allCommunities {
+          title
+          id
+          imageurl
+          creatorslug
+        }
+      }` })
+    })
+      .then((response) => response.json()) // Pega o retorno do response.json() e já retorna
+      .then((respostaCompleta) => {
+        const comunidadesVindasDoDato = respostaCompleta.data.allCommunities;
+        console.log(comunidadesVindasDoDato)
+        setComunidades(comunidadesVindasDoDato)
+      })
+    // .then(function (response) {
+    //   return response.json()
+    // })
+
+  }, [])
     
 
   function handleCriaSeguidores(e) {
@@ -86,17 +114,31 @@ export default function Home() {
             <form onSubmit={function handleCriaComunidade(e) {
               e.preventDefault();
               const dadosDoForm = new FormData(e.target);
-              const comunidade = {
 
-                id: new Date().toISOString(),
+              console.log('Campo: ', dadosDoForm.get('title'));
+              console.log('Campo: ', dadosDoForm.get('image'));
+
+              const comunidade = {
                 title: dadosDoForm.get('title'),
-                image: dadosDoForm.get('image'),
+                imageurl: dadosDoForm.get('image'),
+                creatorslug: githubUser,
               }
 
-              const comunidadesAtualizadas = [...comunidades, comunidade]
-              setComunidades(comunidadesAtualizadas)
-
-            }} >
+              fetch('/api/comunidades', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(comunidade)
+              })
+                .then(async (response) => {
+                  const dados = await response.json();
+                  console.log(dados.registroCriado);
+                  const comunidade = dados.registroCriado;
+                  const comunidadesAtualizadas = [...comunidades, comunidade];
+                  setComunidades(comunidadesAtualizadas)
+                })
+            }}>
               <div>
                 <input 
                   placeholder="Qual vai ser o nome da sua comunidade?"
@@ -146,9 +188,9 @@ export default function Home() {
             </h2>
 
             <ul>
-              {seguidores.map((itemAtual) => {
+              {seguidores.slice(0,6).map((itemAtual) => {
                 return (
-                  <li key={itemAtual.id}>
+                  <li key={itemAtual}>
                     <a href={`/users/${itemAtual.login}`}>
                       <img src={`https://github.com/${itemAtual.login}.png`} />
                       <span>{itemAtual.login}</span>
@@ -165,11 +207,11 @@ export default function Home() {
             </h2>
 
             <ul>
-              {comunidades.map((itemAtual) => {
+              {comunidades.slice(0,6).map((itemAtual) => {
                 return (
                   <li key={itemAtual.id}>
-                    <a href={`/users/${itemAtual.title}`} >
-                      <img src={itemAtual.image} />
+                    <a href={`/communities/${itemAtual.id}`} >
+                      <img src={itemAtual.imageurl} />
                       <span>{itemAtual.title}</span>
                     </a>
                   </li>

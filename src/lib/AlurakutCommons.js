@@ -2,6 +2,8 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import NextLink from 'next/link';
 
+
+
 const BASE_URL = 'http://alurakut.vercel.app/';
 const v = '1';
 
@@ -160,6 +162,7 @@ AlurakutMenu.Logo = styled.img`
   padding: 9px 14px;
   border-radius: 1000px;
   height: 34px;
+  font-family: "Arkadia";
 `;
 
 function AlurakutMenuProfileSidebar({ githubUser }) {
